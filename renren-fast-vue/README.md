@@ -3,6 +3,35 @@
 ## 問題集
 + npm install有顯示node-sass錯誤時，修改package.json中node-sass的依賴版本，和node的版本[對照](https://www.npmjs.com/package/node-sass)
 
+## firebase
+```
+npm install firebase
+```
+
+```
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "{}",
+  authDomain: "{}",
+  projectId: "{}",
+  storageBucket: "{}",
+  messagingSenderId: "{}",
+  appId: "{}",
+  measurementId: "{}"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+```
+
 
 
 #### 为了更好的服务国内用户，renren-fast-vue仓库已迁移到Gitee，新的仓库地址 https://gitee.com/renrenio/renren-ui ，以后会在 https://gitee.com/renrenio/renren-ui 里面进行更新维护，感谢支持！ :smiley: 

@@ -1,5 +1,13 @@
 <template>
   <div>
+    <el-switch
+      v-model="draggable"
+      active-text="拖曳開啟"
+      inactive-text="拖曳關閉"
+    >
+    </el-switch>
+    <el-button v-if="draggable" @click="batchSave()">批次儲存</el-button>
+    <el-button type="danger" @click="batchDelete()">批次刪除</el-button>
     <el-tree
       :data="menus"
       :props="defaultProps"
@@ -7,9 +15,10 @@
       :show-checkbox="true"
       node-key="catId"
       :default-expanded-keys="expandedKeys"
-      draggable
+      :draggable="draggable"
       :allow-drop="allowDrop"
-      @node-drop="handleDropCheck"
+      @node-drop="handleDrop"
+      ref="menuTree"
     >
       <span class="custom-tree-node" slot-scope="{ node, data }">
         <span>{{ node.label }}</span>
@@ -68,12 +77,14 @@
 export default {
   data() {
     return {
+      draggable: false,
       title: "",
       menus: [],
       defaultProps: {
         children: "children",
         label: "name",
       },
+      pcId: [],
       expandedKeys: [],
       dialogVisible: false,
       dialogType: "",
@@ -217,7 +228,7 @@ export default {
     //拖移時的判斷
     allowDrop(draggingNode, dropNode, type) {
       //console.log(draggingNode, dropNode, type);
-      let deep = this.getNodeDeep(draggingNode.data);
+      let deep = this.getNodeDeep(draggingNode);
       //console.log("node deep", deep);
       if (type == "inner") {
         return dropNode.data.catLevel + deep <= 3;
@@ -228,10 +239,10 @@ export default {
     //遞歸取得節點深度
     getNodeDeep(node) {
       let deep = 1;
-      if (node.children != null && node.children.length > 0) {
+      if (node.childNodes != null && node.childNodes.length > 0) {
         let crrDeep = 0;
-        for (let i = 0; i < node.children.length; i++) {
-          let childDeep = this.getNodeDeep(node.children[i]);
+        for (let i = 0; i < node.childNodes.length; i++) {
+          let childDeep = this.getNodeDeep(node.childNodes[i]);
           if (childDeep > crrDeep) {
             crrDeep = childDeep;
           }
@@ -241,18 +252,67 @@ export default {
 
       return deep;
     },
-    handleDropCheck(draggingNode, dropNode, dropType, ev) {
-       this.$confirm("是否要進行批次修改？", "提示", {
+    batchSave() {
+      this.$http({
+        url: this.$http.adornUrl("/mallproduct/category/update/batch"),
+        method: "post",
+        data: this.$http.adornData(this.updateNodes, false),
+      }).then(({ data }) => {
+        this.$message({
+          message: "Menu項目批次修改成功",
+          type: "success",
+        });
+
+        this.getMenus();
+
+        let tmpIds = [];
+        Object.assign(tmpIds, this.pcId);
+        this.expandedKeys = tmpIds;
+        this.updateNodes = [];
+        this.pcId = [];
+      });
+    },
+    batchDelete() {
+      let checkNodes = this.$refs.menuTree.getCheckedNodes();
+      let catIds = checkNodes.map((e) => e.catId);
+      console.log(checkNodes);
+      console.log(catIds);
+      this.$confirm("是否要進行批次刪除？", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning",
       })
         .then(() => {
-         this.handleDrop(draggingNode, dropNode, dropType, ev);
+          this.$http({
+            url: this.$http.adornUrl("/mallproduct/category/update/delete"),
+            method: "post",
+            data: this.$http.adornData(catIds, false),
+          }).then(({ data }) => {
+            this.$message({
+              message: "Menu項目批次刪除成功",
+              type: "success",
+            });
+
+            this.getMenus();
+          });
         })
         .catch(() => {
-         this.getMenus();         
-        console.log("拖曳修改取消");
+          this.getMenus();
+          console.log("拖曳修改取消");
+        });
+    },
+    handleDropCheck(draggingNode, dropNode, dropType, ev) {
+      this.$confirm("是否要進行批次修改？", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.handleDrop(draggingNode, dropNode, dropType, ev);
+        })
+        .catch(() => {
+          this.getMenus();
+          console.log("拖曳修改取消");
         });
     },
     //拖移成功時的判斷
@@ -269,7 +329,6 @@ export default {
       console.log("dropNode", dropNode);
       //console.log("sibling", sibling);
       //只須更新必要資訊，所以新增一陣列填入更新的id和資訊
-      this.updateNodes = [];
       for (let i = 0; i < sibling.length; i++) {
         if (sibling[i].data.catId == draggingNode.data.catId) {
           //console.log(draggingNode.level , sibling[i].level);
@@ -278,7 +337,7 @@ export default {
             this.changeChildrenLevel(sibling[i]);
           }
 
-          this.updateNodes.push( {
+          this.updateNodes.push({
             catId: sibling[i].data.catId,
             parentCid: parentId,
             sort: i,
@@ -289,27 +348,19 @@ export default {
         }
       }
 
-      console.log("update更新後節點資料: ",  this.updateNodes);
-        this.$http({
-        url: this.$http.adornUrl("/mallproduct/category/update/batch"),
-        method: "post",
-        data: this.$http.adornData(this.updateNodes, false),
-      }).then(({ data }) => {
-        this.$message({
-          message: "Menu項目批次修改成功",
-          type: "success",
-        });
-       
-        this.getMenus();
-        this.expandedKeys = [parentId];
-      });
+      this.pcId.push(parentId);
+
+      console.log("update更新後節點資料: ", this.updateNodes);
     },
-    changeChildrenLevel(node) {     
+    changeChildrenLevel(node) {
       //console.log(node);
       if (node.childNodes != null && node.childNodes.length > 0) {
         for (let i = 0; i < node.childNodes.length; i++) {
           let child = node.childNodes[i];
-          this.updateNodes.push({catId: child.data.catId, catLevel:   child.level});
+          this.updateNodes.push({
+            catId: child.data.catId,
+            catLevel: child.level,
+          });
           this.changeChildrenLevel(child);
         }
       }
