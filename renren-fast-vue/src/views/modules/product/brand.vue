@@ -147,6 +147,9 @@
 
 <script>
 import AddOrUpdate from "./brand-add-or-update";
+import firebase from "firebase/app";
+import "firebase/storage";
+
 export default {
   data() {
     return {
@@ -167,6 +170,9 @@ export default {
   },
   activated() {
     this.getDataList();
+  },
+  mounted: {
+    
   },
   methods: {
     // 获取数据列表
