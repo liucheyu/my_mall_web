@@ -2,6 +2,25 @@
 
 ## 問題集
 + npm install有顯示node-sass錯誤時，修改package.json中node-sass的依賴版本，和node的版本[對照](https://www.npmjs.com/package/node-sass)
++ npm install時，node-sass sass-loader版本解不了時
+```
+npm install --legacy-peer-deps
+#npm install --force
+```
+
++ 不同電腦環境執行npm intall時，會莫名去抓不同環境的proxy
+npm config set proxy false
+npm config delete proxy
+npm config set https-proxy null
+npm config set proxy null
+npm config get https-proxy
+npm config get proxy
+
+npm config rm proxy
+npm config rm http-proxy
+
+```
+刪除package-lock.json
 
 ## firebase
 ```
@@ -38,8 +57,8 @@ const storage = getStorage(app);
 
 
 
-#### 为了更好的服务国内用户，renren-fast-vue仓库已迁移到Gitee，新的仓库地址 https://gitee.com/renrenio/renren-ui ，以后会在 https://gitee.com/renrenio/renren-ui 里面进行更新维护，感谢支持！ :smiley: 
-<br> 
+#### 为了更好的服务国内用户，renren-fast-vue仓库已迁移到Gitee，新的仓库地址 https://gitee.com/renrenio/renren-ui ，以后会在 https://gitee.com/renrenio/renren-ui 里面进行更新维护，感谢支持！ :smiley:
+<br>
 
 ## renren-fast-vue
 - renren-fast-vue基于vue、element-ui构建开发，实现[renren-fast](https://gitee.com/renrenio/renren-fast)后台管理前端功能，提供一套更优的前端解决方案
