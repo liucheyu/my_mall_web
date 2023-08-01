@@ -63,6 +63,14 @@
         align="center"
         label="品牌logo地址"
       >
+        <template slot-scope="scope">
+          <!-- <el-image
+            style="width: 100px; height: 100px"
+            :src="scope.row.logo"
+            fit="scale-down"
+          ></el-image> -->
+          <img :src="scope.row.logo" style="width: 80px;height: 80px" />
+        </template>
       </el-table-column>
       <el-table-column
         prop="descript"
@@ -169,8 +177,8 @@ export default {
   activated() {
     this.getDataList();
   },
-  mounted: {
-
+  mounted() {
+    //this.getDataList();
   },
   methods: {
     // 获取数据列表
@@ -257,7 +265,7 @@ export default {
       console.log("狀態改變: ", data);
       let { brandId, showStatus } = data;
       this.$http({
-        url: this.$http.adornUrl("/mallproduct/brand/update"),
+        url: this.$http.adornUrl("/mallproduct/brand/update/status"),
         method: "post",
         data: this.$http.adornData({ brandId, showStatus }, false),
       }).then(({ data }) => {
